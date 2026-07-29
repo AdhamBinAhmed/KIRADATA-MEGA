@@ -1,6 +1,7 @@
 import { getWorkerName, getProducts, getLogs, logout } from '@/app/actions';
 import { redirect } from 'next/navigation';
 import DashboardClient from '@/app/DashboardClient';
+import Navbar from '@/app/components/Navbar';
 
 export default async function CategoryPage({ params }: { params: Promise<{ category: string }> }) {
   const workerName = await getWorkerName();
@@ -18,7 +19,6 @@ export default async function CategoryPage({ params }: { params: Promise<{ categ
   }
 
   const products = await getProducts(category);
-  const logs = await getLogs(); // We'll keep logs global or we could filter logs by category too
 
   return (
     <>
@@ -42,7 +42,8 @@ export default async function CategoryPage({ params }: { params: Promise<{ categ
       </header>
 
       <main className="container" style={{ marginTop: '2rem' }}>
-        <DashboardClient initialProducts={products} initialLogs={logs} category={category} />
+        <Navbar currentPath={category} />
+        <DashboardClient initialProducts={products} category={category} />
       </main>
     </>
   );

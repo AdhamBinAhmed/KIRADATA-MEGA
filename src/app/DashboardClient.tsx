@@ -20,11 +20,9 @@ type Log = {
 
 export default function DashboardClient({ 
   initialProducts, 
-  initialLogs,
   category
 }: { 
   initialProducts: Product[], 
-  initialLogs: Log[],
   category: string
 }) {
   const [isPending, startTransition] = useTransition();
@@ -56,31 +54,10 @@ export default function DashboardClient({
     }
   };
 
-  const categories = ['general', 'silicon', 'chipboard', 'marble', 'wood'];
-
   return (
     <div className="grid">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
         
-        {/* Navigation Bar */}
-        <div className="glass-panel" style={{ padding: '1rem', display: 'flex', gap: '1rem', overflowX: 'auto' }}>
-          {categories.map(c => (
-            <a 
-              key={c}
-              href={`/${c}`}
-              className="btn"
-              style={{
-                textTransform: 'capitalize',
-                background: category === c ? 'var(--primary-color)' : 'rgba(255, 255, 255, 0.05)',
-                color: category === c ? '#fff' : '#cbd5e1',
-                borderColor: category === c ? 'var(--primary-color)' : 'rgba(255, 255, 255, 0.1)',
-              }}
-            >
-              {c}
-            </a>
-          ))}
-        </div>
-
         <div className="glass-panel">
           <h2>Add New Product to {category.charAt(0).toUpperCase() + category.slice(1)}</h2>
           {addError && <div className="error-msg">{addError}</div>}
@@ -166,47 +143,6 @@ export default function DashboardClient({
                 )}
               </tbody>
             </table>
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <div className="glass-panel" style={{ height: '100%' }}>
-          <div className="flex items-center justify-between mb-4">
-            <h2 style={{ marginBottom: 0 }}>Activity Log</h2>
-            <span style={{ fontSize: '0.875rem', color: '#94a3b8' }}>Last 50 actions</span>
-          </div>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {initialLogs.length === 0 ? (
-              <div className="text-center" style={{ color: '#94a3b8', padding: '2rem 0' }}>No activity logs yet.</div>
-            ) : (
-              initialLogs.map(log => (
-                <div key={log.id} style={{ 
-                  padding: '1rem', 
-                  borderRadius: '12px', 
-                  background: 'rgba(255, 255, 255, 0.03)',
-                  border: '1px solid rgba(255, 255, 255, 0.05)'
-                }}>
-                  <div className="flex items-center justify-between mb-2">
-                    <span style={{ fontWeight: 600, color: '#e2e8f0' }}>{log.worker_name}</span>
-                    <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-                      {new Date(log.timestamp).toLocaleString(undefined, { 
-                        month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
-                      })}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className={`badge ${log.action === 'ADDED' ? 'badge-added' : 'badge-deleted'}`}>
-                      {log.action}
-                    </span>
-                    <span style={{ color: '#cbd5e1' }}>
-                      <strong>{log.quantity}</strong> units of <strong style={{ color: '#fff' }}>{log.product_name}</strong>
-                    </span>
-                  </div>
-                </div>
-              ))
-            )}
           </div>
         </div>
       </div>
