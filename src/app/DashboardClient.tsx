@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useTransition } from 'react';
+import { useActionState, useTransition, useState } from 'react';
 import { addProduct, updateProductAmount, deleteProduct } from '@/app/actions';
 
 type Product = {
@@ -26,6 +26,7 @@ export default function DashboardClient({
   initialLogs: Log[] 
 }) {
   const [isPending, startTransition] = useTransition();
+  const [amounts, setAmounts] = useState<Record<string, number>>({});
   
   const [addError, addAction] = useActionState(async (state: string | null, formData: FormData) => {
     const res = await addProduct(formData);
@@ -98,26 +99,35 @@ export default function DashboardClient({
                         <span style={{ fontSize: '1.125rem', fontWeight: 600 }}>{product.amount}</span>
                       </td>
                       <td>
-                        <div className="action-buttons">
+                        <div className="action-buttons" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <input 
+                            type="number" 
+                            className="input" 
+                            style={{ width: '70px', padding: '0.25rem 0.5rem', textAlign: 'center' }} 
+                            value={amounts[product.id] || 1} 
+                            min="1"
+                            onChange={(e) => setAmounts({...amounts, [product.id]: parseInt(e.target.value) || 1})} 
+                            disabled={isPending}
+                          />
                           <button 
                             className="action-btn" 
-                            onClick={() => handleUpdate(product.id, -1)}
-                            disabled={product.amount <= 0 || isPending}
-                            title="Decrease by 1"
+                            onClick={() => handleUpdate(product.id, -(amounts[product.id] || 1))}
+                            disabled={product.amount < (amounts[product.id] || 1) || isPending}
+                            title="Decrease"
                           >
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                           </button>
                           <button 
                             className="action-btn" 
-                            onClick={() => handleUpdate(product.id, 1)}
+                            onClick={() => handleUpdate(product.id, (amounts[product.id] || 1))}
                             disabled={isPending}
-                            title="Increase by 1"
+                            title="Increase"
                           >
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                           </button>
                           <button 
                             className="action-btn" 
-                            style={{ color: '#f87171', borderColor: 'rgba(239, 68, 68, 0.3)' }}
+                            style={{ color: '#f87171', borderColor: 'rgba(239, 68, 68, 0.3)', marginLeft: '1rem' }}
                             onClick={() => handleDelete(product.id)}
                             disabled={isPending}
                             title="Delete product"
