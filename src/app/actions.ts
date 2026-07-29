@@ -4,7 +4,7 @@ import { db } from '@/lib/firebase';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, limit, getDoc, runTransaction } from 'firebase/firestore';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, limit, getDoc, runTransaction, where } from 'firebase/firestore';
 
 const ALLOWED_PASSWORDS = [
   process.env.PRIMARY_PASSWORD || 'kira123',
@@ -41,15 +41,17 @@ export async function getWorkerName() {
   return cookieStore.get('worker_name')?.value || null;
 }
 
-export async function getProducts() {
+export async function getProducts(category: string = 'general') {
   try {
-    const q = query(collection(db, 'products'), orderBy('name', 'asc'));
+    const q = query(collection(db, 'products'), where('category', '==', category));
     const querySnapshot = await getDocs(q);
     const products: { id: string; name: string; amount: number }[] = [];
     querySnapshot.forEach((doc) => {
       const data = doc.data();
       products.push({ id: doc.id, name: data.name, amount: data.amount });
     });
+    // Sort locally to avoid Firestore composite index requirements
+    products.sort((a, b) => a.name.localeCompare(b.name));
     return products;
   } catch (error) {
     console.error("Error fetching products:", error);
@@ -86,6 +88,7 @@ export async function addProduct(formData: FormData) {
 
   const name = formData.get('name') as string;
   const amountStr = formData.get('amount') as string;
+  const category = (formData.get('category') as string) || 'general';
   const amount = parseInt(amountStr, 10);
 
   if (!name || isNaN(amount) || amount <= 0) {
@@ -104,7 +107,8 @@ export async function addProduct(formData: FormData) {
 
     await addDoc(collection(db, 'products'), {
       name,
-      amount
+      amount,
+      category
     });
 
     await addDoc(collection(db, 'logs'), {
@@ -112,10 +116,11 @@ export async function addProduct(formData: FormData) {
       action: 'ADDED',
       product_name: name,
       quantity: amount,
+      category,
       timestamp: new Date().toISOString()
     });
 
-    revalidatePath('/');
+    revalidatePath(`/${category}`);
   } catch (error: any) {
     console.error("Database error:", error);
     return { error: error.message || 'Database error' };
@@ -157,11 +162,15 @@ export async function updateProductAmount(id: string, quantityChange: number) {
         action: action,
         product_name: productData.name,
         quantity: Math.abs(quantityChange),
+        category: productData.category || 'general',
         timestamp: new Date().toISOString()
       });
     });
 
-    revalidatePath('/');
+    // We can't revalidate the exact path easily without knowing the category, but we can revalidate everything
+    // Or we could return the category and have the client refresh. Revalidating the layout might be better.
+    // For now, let's just use revalidatePath '/', layout 'layout' to clear cache.
+    revalidatePath('/', 'layout');
   } catch (error: any) {
     console.error("Update error:", error);
     if (error.message === 'Product not found' || error.message === 'Insufficient stock') {
@@ -192,10 +201,11 @@ export async function deleteProduct(id: string) {
       action: 'DELETED',
       product_name: productData.name,
       quantity: productData.amount,
+      category: productData.category || 'general',
       timestamp: new Date().toISOString()
     });
 
-    revalidatePath('/');
+    revalidatePath('/', 'layout');
   } catch (error: any) {
     console.error("Delete error:", error);
     return { error: error.message || 'Database error' };

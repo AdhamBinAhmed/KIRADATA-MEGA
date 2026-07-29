@@ -20,10 +20,12 @@ type Log = {
 
 export default function DashboardClient({ 
   initialProducts, 
-  initialLogs 
+  initialLogs,
+  category
 }: { 
   initialProducts: Product[], 
-  initialLogs: Log[] 
+  initialLogs: Log[],
+  category: string
 }) {
   const [isPending, startTransition] = useTransition();
   const [amounts, setAmounts] = useState<Record<string, number>>({});
@@ -54,13 +56,36 @@ export default function DashboardClient({
     }
   };
 
+  const categories = ['general', 'silicon', 'chipboard', 'marble', 'wood'];
+
   return (
     <div className="grid">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        
+        {/* Navigation Bar */}
+        <div className="glass-panel" style={{ padding: '1rem', display: 'flex', gap: '1rem', overflowX: 'auto' }}>
+          {categories.map(c => (
+            <a 
+              key={c}
+              href={`/${c}`}
+              className="btn"
+              style={{
+                textTransform: 'capitalize',
+                background: category === c ? 'var(--primary-color)' : 'rgba(255, 255, 255, 0.05)',
+                color: category === c ? '#fff' : '#cbd5e1',
+                borderColor: category === c ? 'var(--primary-color)' : 'rgba(255, 255, 255, 0.1)',
+              }}
+            >
+              {c}
+            </a>
+          ))}
+        </div>
+
         <div className="glass-panel">
-          <h2>Add New Product</h2>
+          <h2>Add New Product to {category.charAt(0).toUpperCase() + category.slice(1)}</h2>
           {addError && <div className="error-msg">{addError}</div>}
           <form action={addAction}>
+            <input type="hidden" name="category" value={category} />
             <div className="form-group">
               <label htmlFor="name">Product Name</label>
               <input type="text" id="name" name="name" className="input" placeholder="e.g. Mechanical Keyboard" required />
