@@ -63,7 +63,7 @@ export async function getLogs() {
   try {
     const q = query(collection(db, 'logs'), orderBy('timestamp', 'desc'), limit(50));
     const querySnapshot = await getDocs(q);
-    const logs: { id: string; worker_name: string; action: string; product_name: string; quantity: number; timestamp: string }[] = [];
+    const logs: { id: string; worker_name: string; action: string; product_name: string; quantity: number; timestamp: string; category?: string }[] = [];
     querySnapshot.forEach((doc) => {
       const data = doc.data();
       logs.push({ 
@@ -72,7 +72,8 @@ export async function getLogs() {
         action: data.action, 
         product_name: data.product_name, 
         quantity: data.quantity, 
-        timestamp: data.timestamp 
+        timestamp: data.timestamp,
+        category: data.category
       });
     });
     return logs;
