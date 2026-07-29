@@ -35,14 +35,20 @@ export default function DashboardClient({
 
   const handleUpdate = (id: string, change: number) => {
     startTransition(async () => {
-      await updateProductAmount(id, change);
+      const res = await updateProductAmount(id, change);
+      if (res?.error) {
+        alert("Error updating: " + res.error);
+      }
     });
   };
 
   const handleDelete = (id: string) => {
     if (confirm('Are you sure you want to delete this product?')) {
       startTransition(async () => {
-        await deleteProduct(id);
+        const res = await deleteProduct(id);
+        if (res?.error) {
+          alert("Error deleting: " + res.error);
+        }
       });
     }
   };
