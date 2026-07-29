@@ -118,7 +118,7 @@ export async function addProduct(formData: FormData) {
     revalidatePath('/');
   } catch (error: any) {
     console.error("Database error:", error);
-    return { error: 'Database error' };
+    return { error: error.message || 'Database error' };
   }
 }
 
@@ -167,7 +167,7 @@ export async function updateProductAmount(id: string, quantityChange: number) {
     if (error.message === 'Product not found' || error.message === 'Insufficient stock') {
       return { error: error.message };
     }
-    return { error: 'Database error' };
+    return { error: error.message || 'Database error' };
   }
 }
 
@@ -196,8 +196,8 @@ export async function deleteProduct(id: string) {
     });
 
     revalidatePath('/');
-  } catch (error) {
+  } catch (error: any) {
     console.error("Delete error:", error);
-    return { error: 'Database error' };
+    return { error: error.message || 'Database error' };
   }
 }
